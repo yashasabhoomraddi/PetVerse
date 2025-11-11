@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Adopt a Pet</title>
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="./supabase-client.js"></script>
+  <script src="/auth.js"></script>
+</head>
+<body>
+  <h1>Adoption Request Form</h1>
+  
+  <form id="adoptForm">
+    <label for="name">Your Name:</label>
+    <input type="text" id="name" name="name" required><br><br>
+
+    <label for="email">Your Email:</label>
+    <input type="email" id="email" name="email" required><br><br>
+
+    <label for="petId">Pet ID:</label>
+    <input type="number" id="petId" name="petId" required><br><br>
+
+    <button type="submit">Submit Request</button>
+  </form>
+
+  <p id="message"></p>
+
+  <script>
+    // --- UPDATED SCRIPT ---
+    document.getElementById('adoptForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // 1. Get the real, secure user from Supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+          document.getElementById('message').innerText = "Please login to adopt a pet.";
+          // Optionally redirect:
+          // setTimeout(() => { window.location.href = 'login.html'; }, 1500);
+          return;
+      }
+
+      // We only need the petId from the form.
+      // The 'name' and 'email' fields are ignored in favor of the logged-in user.
+      const petId = document.getElementById('petId').value;
+      const messageEl = document.getElementById('message');
+
+      if (!petId) {
+          messageEl.innerText = "Please enter a Pet ID.";
+          return;
+      }
+
+      try {
+        messageEl.innerText = "Processing adoption...";
+
+        // First, we must get the pet's name and check its status
+        const { data: pet, error: petError } = await supabase
+            .from('pets') // Assumes your table is 'pets'
+            .select('name, adopted')
+            .eq('id', petId)
+            .single(); // Get just one record
+
+        if (petError || !pet) throw new Error("Pet not found or error fetching pet data.");
+        if (pet.adopted) throw new Error("This pet has already been adopted.");
+
+        // Now, proceed with the two-step adoption
+        
+        // Step 1: Mark pet as adopted
+        const { error: updateError } = await supabase
+            .from('pets')
+            .update({ adopted: true })
+            .eq('id', petId);
+            
+        if (updateError) throw updateError;
+
+        // Step 2: Create the adoption record
+        const { error: insertError } = await supabase
+            .from('adoptions') // Assumes your table is 'adoptions'
+            .insert({
+                pet_id: petId,
+                user_id: user.id, // Use the secure user.id
+                pet_name: pet.name // Use the name we just fetched
+            });
+
+        if (insertError) throw insertError;
+
+        messageEl.innerText = `Successfully adopted ${pet.name}! Thank you! 🐾`;
+        document.getElementById('adoptForm').reset();
+
+      } catch (err) {
+          console.error('Adoption failed:', err);
+          messageEl.innerText = err.message || "Adoption failed. Please try again.";
+      }
+    });
+  </script>
+  
+  </body>
+</html>

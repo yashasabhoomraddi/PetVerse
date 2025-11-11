@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Adoptions | PetVerse</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/supabase-client.js"></script>
+  <script src="/translations.js"></script>
+  <script src="/auth.js"></script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">PetVerse 🐾</div>
+    <ul>
+        <li><a href="index.html" data-i18n="nav_home">Home</a></li>
+        <li><a href="pets.html" data-i18n="nav_adopt">Adopt</a></li>
+        <li><a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a></li>
+        <li><a href="donate.html" data-i18n="nav_donate">Donate</a></li>
+        <li><a href="community.html" data-i18n="nav_community">Community</a></li>
+        <li><a href="lost-found.html" data-i18n="nav_lost_found">Lost & Found</a></li>
+        <li><a href="login.html" id="loginLink" data-i18n="nav_login">Login / Signup</a></li>
+        <li><a href="myadoptions.html" data-i18n="nav_my_adoptions">My Adoptions</a></li>
+        <li id="logoutItem" style="display: none;">
+            <a href="javascript:void(0)" id="logoutLink" style="color: var(--secondary);" data-i18n="nav_logout">Logout</a>
+        </li>
+        <li>
+            <select id="languageSelect" onchange="changeLanguage(this.value)" style="background: var(--primary-light); color: white; border: none; padding: 0.5rem; border-radius: var(--radius);">
+                <option value="en">English</option>
+                <option value="hi">हिन्दी</option>
+                <option value="kn">ಕನ್ನಡ</option>
+            </select>
+        </li>
+    </ul>
+</nav>
+
+  <div class="hero">
+    <h1 data-i18n="my_adoptions_title">My Adopted Pets</h1>
+    <p data-i18n="my_adoptions_subtitle">View all the lovely pets you've given a forever home</p>
+  </div>
+
+  <div id="adoptionsContainer" class="pets-grid">
+    <div style="text-align: center; grid-column: 1/-1; padding: 4rem 2rem; color: var(--text-light);">
+      <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="No adoptions" style="width: 200px; height: 200px; opacity: 0.7; margin-bottom: 2rem;">
+      <h3 style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--primary);" data-i18n="no_adoptions_title">No Adoptions Yet</h3>
+      <p style="font-size: 1.1rem; margin-bottom: 2rem;" data-i18n="no_adoptions_message">You haven't adopted any pets yet. Visit our adoption page to find your new best friend!</p>
+      <button onclick="window.location.href='pets.html'" style="background: var(--primary); color: var(--white); padding: 0.8rem 1.5rem; border-radius: var(--radius); border: none; font-weight: 600; cursor: pointer;" data-i18n="browse_pets_button">Browse Pets for Adoption</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    // REMOVED: updateAuthLinks() and logout() functions.
+    // They are now handled globally by auth.js
+
+    // Kept this local utility function
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.innerText = message;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 3000);
+    }
+
+    // --- COMPLETELY REWRITTEN loadAdoptions() ---
+    async function loadAdoptions() {
+      const container = document.getElementById('adoptionsContainer');
+
+      // 1. Securely get the user from Supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        // User is not logged in, display the 'Please Login' message
+        container.innerHTML = `
+          <div style="text-align: center; grid-column: 1/-1; padding: 4rem 2rem; color: var(--text-light);">
+            <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="Please login" style="width: 200px; height: 200px; opacity: 0.7; margin-bottom: 2rem;">
+            <h3 style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--primary);">Please Login</h3>
+            <p style="font-size: 1.1rem; margin-bottom: 2rem;">Please login to view your adopted pets.</p>
+            <button onclick="window.location.href='login.html'" style="background: var(--primary); color: var(--white); padding: 0.8rem 1.5rem; border-radius: var(--radius); border: none; font-weight: 600; cursor: pointer;">Login Now</button>
+          </div>
+        `;
+        return;
+      }
+
+      try {
+        // 2. Fetch adoptions and join with 'pets' table
+        // This assumes 'adoptions.pet_id' is a foreign key to 'pets.id'
+        const { data: adoptions, error } = await supabase
+            .from('adoptions')
+            .select(`
+                pet_name,
+                pets (id, name, type, age, description, image)
+            `)
+            .eq('user_id', user.id); // Filter by the secure user ID
+
+        if (error) throw error;
+        
+        // 3. Handle 'No Adoptions' case
+        if (adoptions.length === 0) {
+          container.innerHTML = `
+            <div style="text-align: center; grid-column: 1/-1; padding: 4rem 2rem; color: var(--text-light);">
+              <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="No adoptions" style="width: 200px; height: 200px; opacity: 0.7; margin-bottom: 2rem;">
+              <h3 style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--primary);">No Adoptions Found</h3>
+              <p style="font-size: 1.1rem; margin-bottom: 2rem;">You haven't adopted any pets yet. Find your perfect companion!</p>
+              <button onclick="window.location.href='pets.html'" style="background: var(--primary); color: var(--white); padding: 0.8rem 1.5rem; border-radius: var(--radius); border: none; font-weight: 600; cursor: pointer;">Find Pets to Adopt</button>
+            </div>
+          `;
+          return;
+        }
+
+        // 4. Build and display the adoption cards
+        container.innerHTML = adoptions.map(adoption => {
+          const pet = adoption.pets; // This is the joined pet data
+
+          // Safety check in case the pet was deleted or join failed
+          if (!pet) return ''; 
+
+          return `
+          <div class="pet-card">
+            <img src="${pet.image}" 
+                 alt="${pet.name}" 
+                 onerror="this.src='https://via.placeholder.com/300x200/8B5FBF/FFFFFF?text=Pet+Image'">
+            <div class="pet-card-content">
+              <h3>${pet.name}</h3>
+              <span class="type">${pet.type}</span>
+              <div class="details">
+                <p><strong>Age:</strong> ${pet.age}</p>
+                <p><strong>Description:</strong> ${pet.description}</p>
+              </div>
+              <div style="background: var(--background); padding: 1rem; margin-top: 1rem; border-radius: var(--radius); border-left: 4px solid var(--accent);">
+                <p><strong>Status:</strong> 🏡 Happy in forever home</p>
+              </div>
+            </div>
+          </div>
+          `;
+        }).join('');
+
+      } catch (error) {
+        console.error('Error loading adoptions:', error);
+        showToast("Error loading adoptions. Please try again.");
+      }
+    }
+
+    // Load adoptions automatically when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      // auth.js will handle updating auth links on its own.
+      loadAdoptions();
+    });
+  </script>
+
+  </body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🐾 Adopt a Pet | PetVerse</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/supabase-client.js"></script>
+  <script src="/translations.js"></script>
+  <script src="/auth.js"></script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">PetVerse 🐾</div>
+    <ul>
+        <li><a href="index.html" data-i18n="nav_home">Home</a></li>
+        <li><a href="pets.html" data-i18n="nav_adopt">Adopt</a></li>
+        <li><a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a></li>
+        <li><a href="donate.html" data-i18n="nav_donate">Donate</a></li>
+        <li><a href="community.html" data-i18n="nav_community">Community</a></li>
+        <li><a href="lost-found.html" data-i18n="nav_lost_found">Lost & Found</a></li>
+        <li><a href="login.html" id="loginLink" data-i18n="nav_login">Login / Signup</a></li>
+        <li><a href="myadoptions.html" data-i18n="nav_my_adoptions">My Adoptions</a></li>
+        <li id="logoutItem" style="display: none;">
+            <a href="javascript:void(0)" id="logoutLink" style="color: var(--secondary);" data-i18n="nav_logout">Logout</a>
+        </li>
+        <li>
+            <select id="languageSelect" onchange="changeLanguage(this.value)" style="background: var(--primary-light); color: white; border: none; padding: 0.5rem; border-radius: var(--radius);">
+                <option value="en">English</option>
+                <option value="hi">हिन्दी</option>
+                <option value="kn">ಕನ್ನಡ</option>
+            </select>
+        </li>
+    </ul>
+</nav>
+
+  <div class="hero">
+    <h1>Find Your Perfect Companion</h1>
+    <p>Give a loving home to pets waiting for their forever family</p>
+  </div>
+
+  <div class="category-filter">
+    <button class="category-btn active" onclick="filterPets('all')">All Pets</button>
+    <button class="category-btn" onclick="filterPets('dog')">Dogs 🐕</button>
+    <button class="category-btn" onclick="filterPets('cat')">Cats 🐈</button>
+    <button class="category-btn" onclick="filterPets('bird')">Birds 🐦</button>
+    <button class="category-btn" onclick="filterPets('rabbit')">Rabbits</button>
+  </div>
+
+  <div id="pets-container" class="pets-grid">Loading pets...</div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const container = document.getElementById("pets-container");
+    // const toast = document.getElementById("toast"); // No longer needed, auth.js handles
+    
+    // REMOVED: const backendURL = "";
+    
+    let allPets = [];
+
+    // REMOVED: updateAuthLinks() function (Handled by auth.js)
+    // REMOVED: logout() function (Handled by auth.js)
+    // REMOVED: showToast() function (Handled by auth.js)
+
+    // --- Unchanged: This logic is all client-side ---
+    function filterPets(category) {
+      document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      const filteredPets = category === 'all' ? allPets : allPets.filter(pet => 
+        pet.type.toLowerCase().includes(category)
+      );
+      
+      displayPets(filteredPets);
+    }
+
+    // --- Updated: Simplified image path ---
+    function displayPets(pets) {
+      container.innerHTML = "";
+      
+      if (pets.length === 0) {
+        container.innerHTML = '<p style="text-align: center; grid-column: 1/-1; color: var(--text-light);">No pets found in this category.</p>';
+        return;
+      }
+
+      pets.forEach(pet => {
+        const card = document.createElement("div");
+        card.className = "pet-card";
+        card.setAttribute('data-category', pet.type.toLowerCase());
+        
+        // UPDATED: Assumes pet.image is a full URL from Supabase Storage
+        card.innerHTML = `
+          <img src="${pet.image}" alt="${pet.name}" onerror="this.src='https://via.placeholder.com/300x200/8B5FBF/FFFFFF?text=Pet+Image'">
+          <div class="pet-card-content">
+            <h3>${pet.name}</h3>
+            <span class="type">${pet.type}</span>
+            <div class="details">
+              <p><strong>Age:</strong> ${pet.age}</p>
+              <p><strong>Description:</strong> ${pet.description}</p>
+            </div>
+            <button class="adopt-btn" data-id="${pet.id}">Adopt ${pet.name}</button>
+          </div>
+        `;
+
+        // --- UPDATED: Adopt button now uses Supabase ---
+        card.querySelector('.adopt-btn').addEventListener('click', async (e) => {
+          e.stopPropagation();
+          
+          // 1. Securely check for user
+          const { data: { user } } = await supabase.auth.getUser();
+          const petId = e.target.dataset.id;
+
+          if (!user) {
+            showToast("Please login to adopt a pet 🐾", "error"); // Uses global showToast
+            return;
+          }
+
+          const petName = e.target.closest('.pet-card-content').querySelector('h3').innerText;
+
+          try {
+            // 2. Step 1: Mark pet as adopted
+            const { error: updateError } = await supabase
+                .from('pets')
+                .update({ adopted: true })
+                .eq('id', petId)
+                .single(); // Use .single() if petId is the primary key
+
+            if (updateError) throw updateError;
+
+            // 3. Step 2: Create adoption record
+            const { error: insertError } = await supabase
+                .from('adoptions')
+                .insert({
+                    pet_id: petId,
+                    user_id: user.id, // Secure user ID
+                    pet_name: petName
+                });
+
+            if (insertError) throw insertError;
+
+            // 4. Success
+            showToast(`Successfully adopted ${petName}!`, 'success');
+            card.style.display = 'none'; // Remove pet from view
+
+          } catch (err) {
+            showToast(`Adoption failed: ${err.message}`, 'error');
+            console.error("Adoption failed:", err);
+          }
+        });
+
+        container.appendChild(card);
+      });
+    }
+
+    // --- UPDATED: loadPets now uses Supabase ---
+    async function loadPets() {
+      try {
+        const { data, error } = await supabase
+            .from('pets')
+            .select('*')
+            .eq('adopted', false); // Get only pets that are NOT adopted
+
+        if (error) throw error;
+
+        allPets = data;
+        displayPets(allPets);
+      } catch (err) {
+        container.innerHTML = "<p style='text-align: center; grid-column: 1/-1; color: var(--text-light);'>⚠️ Failed to load pets. Please try again later.</p>";
+        console.error("Error fetching pets:", err);
+      }
+    }
+
+    // --- UPDATED: Removed old auth call ---
+    document.addEventListener('DOMContentLoaded', () => {
+      // updateAuthLinks(); // REMOVED (auth.js handles this)
+      loadPets();
+    });
+  </script>
+  
+  </body>
+</html>

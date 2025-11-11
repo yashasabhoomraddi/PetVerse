@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Volunteer | PetVerse</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/supabase-client.js"></script>
+  <script src="/translations.js"></script>
+  <script src="/auth.js"></script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">PetVerse 🐾</div>
+    <ul>
+        <li><a href="index.html" data-i18n="nav_home">Home</a></li>
+        <li><a href="pets.html" data-i18n="nav_adopt">Adopt</a></li>
+        <li><a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a></li>
+        <li><a href="donate.html" data-i18n="nav_donate">Donate</a></li>
+        <li><a href="community.html" data-i18n="nav_community">Community</a></li>
+        <li><a href="lost-found.html" data-i18n="nav_lost_found">Lost & Found</a></li>
+        <li><a href="login.html" id="loginLink" data-i18n="nav_login">Login / Signup</a></li>
+        <li><a href="myadoptions.html" data-i18n="nav_my_adoptions">My Adoptions</a></li>
+        <li id="logoutItem" style="display: none;">
+            <a href="javascript:void(0)" id="logoutLink" style="color: var(--secondary);" data-i18n="nav_logout">Logout</a>
+        </li>
+        <li>
+            <select id="languageSelect" onchange="changeLanguage(this.value)" style="background: var(--primary-light); color: white; border: none; padding: 0.5rem; border-radius: var(--radius);">
+                <option value="en">English</option>
+                <option value="hi">हिन्दी</option>
+                <option value="kn">ಕನ್ನಡ</option>
+            </select>
+        </li>
+    </ul>
+</nav>
+
+  <div class="hero">
+    <h1>Become a Volunteer</h1>
+    <p>Join our community and make a difference in the lives of animals</p>
+  </div>
+
+  <div class="volunteer-container" style="max-width: 800px; margin: 2rem auto; padding: 2rem;">
+    <div class="volunteer-info" style="background: var(--white); padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 2rem;">
+      <h2 style="color: var(--primary); margin-bottom: 1rem;">Why Volunteer With Us?</h2>
+      <p style="color: var(--text-light); line-height: 1.6; margin-bottom: 1.5rem;">
+        Our volunteers are the heart of PetVerse. Whether you're walking dogs, socializing cats, 
+        helping with events, or assisting with administrative tasks, your time makes a real difference.
+      </p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+        <div style="text-align: center; padding: 1rem; background: var(--background); border-radius: var(--radius);">
+          <div style="font-size: 2rem; margin-bottom: 0.5rem;">🐕</div>
+          <h4 style="color: var(--primary); margin-bottom: 0.5rem;">Animal Care</h4>
+          <p style="color: var(--text-light); font-size: 0.9rem;">Help with feeding, grooming, and exercise</p>
+        </div>
+        <div style="text-align: center; padding: 1rem; background: var(--background); border-radius: var(--radius);">
+          <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎪</div>
+          <h4 style="color: var(--primary); margin-bottom: 0.5rem;">Events</h4>
+          <p style="color: var(--text-light); font-size: 0.9rem;">Assist with adoption events and fundraisers</p>
+        </div>
+        <div style="text-align: center; padding: 1rem; background: var(--background); border-radius: var(--radius);">
+          <div style="font-size: 2rem; margin-bottom: 0.5rem;">📋</div>
+          <h4 style="color: var(--primary); margin-bottom: 0.5rem;">Admin Support</h4>
+          <p style="color: var(--text-light); font-size: 0.9rem;">Help with paperwork and communications</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="volunteer-form" style="background: var(--white); padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow);">
+      <h2 style="color: var(--primary); margin-bottom: 1.5rem;">Volunteer Application</h2>
+      <form id="volunteerForm">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; color: var(--text); font-weight: 500;">First Name</label>
+            <input type="text" id="firstName" style="width: 100%; padding: 0.8rem; border: 2px solid var(--primary-light); border-radius: var(--radius);" required>
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; color: var(--text); font-weight: 500;">Last Name</label>
+            <input type="text" id="lastName" style="width: 100%; padding: 0.8rem; border: 2px solid var(--primary-light); border-radius: var(--radius);" required>
+          </div>
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+          <label style="display: block; margin-bottom: 0.5rem; color: var(--text); font-weight: 500;">Email</label>
+          <input type="email" id="email" style="width: 100%; padding: 0.8rem; border: 2px solid var(--primary-light); border-radius: var(--radius);" required>
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+          <label style="display: block; margin-bottom: 0.5rem; color: var(--text); font-weight: 500;">Phone</label>
+          <input type="tel" id="phone" style="width: 100%; padding: 0.8rem; border: 2px solid var(--primary-light); border-radius: var(--radius);" required>
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+          <label style="display: block; margin-bottom: 0.5rem; color: var(--text); font-weight: 500;">Areas of Interest</label>
+          <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem;">
+              <input type="checkbox" name="interest" value="animal_care"> Animal Care
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem;">
+              <input type="checkbox" name="interest" value="event_support"> Event Support
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem;">
+              <input type="checkbox" name="interest" value="administrative"> Administrative
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem;">
+              <input type="checkbox" name="interest" value="transportation"> Transportation
+            </label>
+          </div>
+        </div>
+        
+        <button type="submit" style="background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: var(--white); border: none; padding: 1rem 2rem; border-radius: var(--radius); font-weight: 600; cursor: pointer; width: 100%;">
+          Submit Application
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    // REMOVED: updateLoginLink() function (now in auth.js)
+    // REMOVED: showToast() function (now in auth.js)
+
+    // --- UPDATED: Now uses Supabase auth ---
+    document.getElementById('volunteerForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      // Replaced localStorage with secure Supabase auth check
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        // Uses global showToast from auth.js
+        showToast("Please login to submit volunteer application", "error"); 
+        return;
+      }
+      
+      // This is a "dummy" form submit, no data is sent to Supabase
+      // per the original file's logic. We just show a "thank you".
+      showToast("Thank you for your interest in volunteering! We'll contact you soon.", "success");
+      this.reset();
+    });
+
+    // REMOVED: document.addEventListener('DOMContentLoaded', updateLoginLink);
+    // auth.js handles this automatically
+  </script>
+
+  </body>
+</html>

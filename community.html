@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Community | PetVerse</title>
+  <script type="module" src="/supabase-client.js"></script>
+  <script src="/auth.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    /* All your existing styles are kept exactly as-is */
+    .community-container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 2rem;
+    }
+
+    .chat-section, .ai-assistant {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.5rem;
+    }
+
+    .chat-header {
+      border-bottom: 2px solid var(--background);
+      padding-bottom: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .chat-messages {
+      height: 400px;
+      overflow-y: auto;
+      margin-bottom: 1rem;
+      padding: 1rem;
+      background: var(--background);
+      border-radius: var(--radius);
+    }
+
+    .message {
+      margin-bottom: 1rem;
+      padding: 0.8rem;
+      border-radius: var(--radius);
+      max-width: 80%;
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    .message.user {
+      background: var(--primary-light);
+      color: var(--white);
+      margin-left: auto;
+    }
+
+    .message.other {
+      background: var(--background);
+      color: var(--text);
+    }
+
+    .message.ai {
+      background: var(--accent);
+      color: var(--white);
+    }
+
+    .chat-input {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 0.8rem;
+      border: 2px solid var(--primary-light);
+      border-radius: var(--radius);
+    }
+
+    .chat-input button {
+      background: var(--primary);
+      color: var(--white);
+      border: none;
+      padding: 0.8rem 1.5rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+    }
+
+    .ai-assistant {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: var(--white);
+    }
+
+    .ai-input {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .ai-input input {
+      flex: 1;
+      padding: 0.5rem;
+      border: none;
+      border-radius: var(--radius);
+    }
+
+    .posts-section {
+      grid-column: 1 / -1;
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .post {
+      border: 1px solid var(--primary-light);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .post-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .post-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    .post-actions button {
+      background: none;
+      border: none;
+      color: var(--text-light);
+      cursor: pointer;
+    }
+
+    .clear-chat-btn {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: 1px solid white;
+      padding: 0.3rem 0.8rem;
+      border-radius: var(--radius);
+      font-size: 0.8rem;
+      cursor: pointer;
+      margin-left: 1rem;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      .community-container {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">PetVerse 🐾</div>
+    <ul>
+      <li><a href="index.html" data-i18n="nav_home">Home</a></li>
+      <li><a href="pets.html" data-i18n="nav_adopt">Adopt</a></li>
+      <li><a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a></li>
+      <li><a href="donate.html" data-i18n="nav_donate">Donate</a></li>
+      <li><a href="community.html" style="color: var(--primary);" data-i18n="nav_community">Community</a></li>
+      <li><a href="lost-found.html" data-i18n="nav_lost_found">Lost & Found</a></li>
+      <li><a href="login.html" id="loginLink" data-i18n="nav_login">Login / Signup</a></li>
+      <li><a href="myadoptions.html" data-i18n="nav_my_adoptions">My Adoptions</a></li>
+      <li id="logoutItem" style="display: none;">
+        <a href="javascript:void(0)" id="logoutLink" style="color: var(--secondary);" data-i18n="nav_logout">Logout</a>
+      </li>
+      <li>
+        <select id="languageSelect" onchange="changeLanguage(this.value)" style="background: var(--primary-light); color: white; border: none; padding: 0.5rem; border-radius: var(--radius);">
+          <option value="en">English</option>
+          <option value="hi">हिन्दी</option>
+          <option value="kn">ಕನ್ನಡ</option>
+        </select>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="hero">
+    <h1 data-i18n="community_page_title">Community Chat</h1>
+    <p data-i18n="community_page_subtitle">Connect with other pet lovers, ask questions, and share experiences</p>
+  </div>
+
+  <div class="community-container">
+    <div class="chat-section">
+      <div class="chat-header">
+        <h3 data-i18n="community_chat">Community Chat</h3>
+        <p>Chat with other pet owners in real-time</p>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="message other">
+          <strong>Admin:</strong> Welcome to PetVerse Community! Feel free to ask questions and share your pet stories.
+        </div>
+      </div>
+      <div class="chat-input">
+        <input type="text" id="chatInput" placeholder="Type your message..." data-i18n="type_message">
+        <button onclick="sendMessage()" data-i18n="send_button">Send</button>
+      </div>
+    </div>
+
+    <div class="ai-assistant">
+      <div class="chat-header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h3 data-i18n="ai_assistant">🤖 Pet AI Assistant</h3>
+          <button class="clear-chat-btn" onclick="clearAIChat()" data-i18n="clear_chat">Clear Chat</button>
+        </div>
+        <p>Get instant answers to your pet care questions</p>
+      </div>
+      <div class="chat-messages" id="aiMessages">
+        </div>
+      <div class="ai-input">
+        <input type="text" id="aiInput" placeholder="Ask about pet care..." data-i18n="ask_ai_placeholder">
+        <button onclick="askAI()" data-i18n="ask_button">Ask</button>
+      </div>
+    </div>
+
+    <div class="posts-section">
+      <div class="chat-header">
+        <h3 data-i18n="community_posts">Community Posts</h3>
+        <div>
+          <input type="text" id="postTitle" placeholder="Post title" data-i18n="post_title_placeholder" style="margin-right: 1rem; padding: 0.5rem; border: 1px solid var(--primary-light); border-radius: var(--radius);">
+          <textarea id="postContent" placeholder="Share your experience..." data-i18n="post_content_placeholder" style="width: 100%; padding: 0.5rem; border: 1px solid var(--primary-light); border-radius: var(--radius); margin: 0.5rem 0;"></textarea>
+          <button onclick="createPost()" style="background: var(--primary); color: white; border: none; padding: 0.5rem 1rem; border-radius: var(--radius); cursor: pointer;" data-i18n="create_post">Create Post</button>
+        </div>
+      </div>
+      <div id="postsContainer">
+        <p>Loading posts...</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  
+
+  <script>
+    // ========== AI KNOWLEDGE BASE (Unchanged) ==========
+    
+    const aiKnowledgeBase = {
+        'food': "For pet food, I recommend high-quality commercial pet food appropriate for your pet's age, size, and breed. Always ensure fresh water is available. Avoid feeding human food, especially chocolate, grapes, onions, and xylitol which are toxic to pets.",
+        'diet': "A balanced diet is crucial. Puppies/kittens need food rich in protein and fat. Adult pets need maintenance diets. Senior pets may require special formulations. Consult your vet for specific dietary recommendations.",
+        'vaccination': "Core vaccinations are essential! Dogs need rabies, distemper, parvovirus. Cats need rabies, feline distemper, calicivirus. Follow your vet's vaccination schedule. Keep vaccination records updated.",
+        'training': "Use positive reinforcement! Reward good behavior with treats and praise. Keep training sessions short (5-15 minutes). Be consistent with commands. Socialize pets early with different people, animals, and environments.",
+        'potty': "Establish a consistent bathroom routine. Take puppies out frequently: after waking, eating, playing. Use a specific command. Reward immediately after they go. Clean accidents thoroughly to remove scent.",
+        'barking': "Excessive barking can indicate boredom, anxiety, or medical issues. Ensure adequate exercise and mental stimulation. Teach 'quiet' command. Never punish barking - address the underlying cause.",
+        'vomiting': "Occasional vomiting may be normal. Seek immediate vet care if: vomiting persists more than 24 hours, contains blood, is accompanied by lethargy, or if pet can't keep water down.",
+        'adoption': "Congratulations! Give your new pet time to adjust. Set up a quiet space. Maintain consistent routines. Be patient - it can take weeks for pets to feel completely comfortable. Schedule a vet check-up soon.",
+        'cost': "Initial costs include adoption fees, spay/neuter, vaccinations, supplies. Monthly costs: food, preventatives, grooming. Annual vet visits. Emergency fund recommended for unexpected medical expenses.",
+        'default': "I'd be happy to help with that! For the most accurate and personalized advice, I recommend consulting with your veterinarian. They can provide guidance specific to your pet's breed, age, and health condition. Is there anything else about pet care I can help you with?"
+    };
+
+    // ========== CHAT HISTORY MANAGEMENT (Unchanged) ==========
+    function saveAIChatHistory() {
+        try {
+            const aiMessages = document.getElementById('aiMessages');
+            const messages = [];
+            
+            // Save all AI chat messages
+            aiMessages.querySelectorAll('.message').forEach(message => {
+                messages.push({
+                    html: message.outerHTML,
+                    isUser: message.classList.contains('user'),
+                    isAI: message.classList.contains('ai')
+                });
+            });
+            
+            localStorage.setItem('petverse_ai_chat_history', JSON.stringify(messages));
+            console.log('Chat saved:', messages.length, 'messages');
+        } catch (error) {
+            console.error('Error saving chat:', error);
+        }
+    }
+
+    function loadAIChatHistory() {
+        try {
+            const aiMessages = document.getElementById('aiMessages');
+            const savedChat = localStorage.getItem('petverse_ai_chat_history');
+            
+            console.log('Loading chat history...');
+            
+            aiMessages.innerHTML = ''; // Clear current messages
+            
+            if (savedChat) {
+                const messages = JSON.parse(savedChat);
+                console.log('Found saved chat:', messages.length, 'messages');
+                
+                messages.forEach(msg => {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = msg.html;
+                    const messageElement = tempDiv.firstElementChild;
+                    if (messageElement) {
+                        aiMessages.appendChild(messageElement);
+                    }
+                });
+            } else {
+                console.log('No saved chat found, creating welcome message');
+                // Initial AI message if no history exists
+                const welcomeMsg = document.createElement('div');
+                welcomeMsg.className = 'message ai';
+                welcomeMsg.innerHTML = `<strong>Pet AI:</strong> Hello! I can help with pet care advice, training tips, health questions, and more. What would you like to know?`;
+                aiMessages.appendChild(welcomeMsg);
+                saveAIChatHistory(); // Save the initial message
+            }
+            
+            aiMessages.scrollTop = aiMessages.scrollHeight;
+            console.log('Chat history loaded successfully');
+        } catch (error) {
+            console.error('Error loading chat history:', error);
+            // Create a fresh chat if loading fails
+            const aiMessages = document.getElementById('aiMessages');
+            aiMessages.innerHTML = '';
+            const welcomeMsg = document.createElement('div');
+            welcomeMsg.className = 'message ai';
+            welcomeMsg.innerHTML = `<strong>Pet AI:</strong> Hello! I can help with pet care advice, training tips, health questions, and more. What would you like to know?`;
+            aiMessages.appendChild(welcomeMsg);
+        }
+    }
+
+    function clearAIChat() {
+        if (confirm('Are you sure you want to clear the chat history?')) {
+            localStorage.removeItem('petverse_ai_chat_history');
+            loadAIChatHistory();
+            showToast('Chat history cleared');
+        }
+    }
+
+    function addAIMessage(message, isUser = false) {
+        const aiMessages = document.getElementById('aiMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = isUser ? 'message user' : 'message ai';
+        messageDiv.innerHTML = isUser ? `<strong>You:</strong> ${message}` : `<strong>Pet AI:</strong> ${message}`;
+        aiMessages.appendChild(messageDiv);
+        aiMessages.scrollTop = aiMessages.scrollHeight;
+        
+        // Save immediately after adding message
+        setTimeout(saveAIChatHistory, 100);
+    }
+
+    // ========== AI CHAT FUNCTION (Unchanged) ==========
+    function askAI() {
+        const input = document.getElementById('aiInput');
+        const userQuestion = input.value.trim();
+        
+        if (!userQuestion) return;
+        
+        addAIMessage(userQuestion, true);
+        
+        // Find relevant response
+        let response = aiKnowledgeBase.default;
+        const userQuestionLower = userQuestion.toLowerCase();
+        
+        // Check for keywords in the question
+        const keywords = Object.keys(aiKnowledgeBase);
+        for (const keyword of keywords) {
+            if (userQuestionLower.includes(keyword) && keyword !== 'default') {
+                response = aiKnowledgeBase[keyword];
+                break;
+            }
+        }
+        
+        // Special cases for common questions
+        if (userQuestionLower.includes('hello') || userQuestionLower.includes('hi')) {
+            response = "Hello! I'm your Pet AI Assistant. I can help with pet care advice, training tips, health questions, behavior issues, and general pet parenting guidance. What would you like to know about your pet?";
+        } else if (userQuestionLower.includes('thank')) {
+            response = "You're welcome! I'm here to help with all your pet care questions. Don't hesitate to ask if you need more information or have other concerns about your furry friend!";
+        } else if (userQuestionLower.includes('cost') || userQuestionLower.includes('price') || userQuestionLower.includes('expensive')) {
+            response = aiKnowledgeBase.cost;
+        } else if (userQuestionLower.includes('vet') || userQuestionLower.includes('doctor')) {
+            response = "Regular veterinary care is essential for your pet's health. Annual check-ups, vaccinations, dental care, and preventive treatments are important. For specific medical concerns, always consult your veterinarian directly.";
+        }
+        
+        // AI response with slight delay for natural feel
+        setTimeout(() => {
+            addAIMessage(response, false);
+        }, 800);
+        
+        input.value = '';
+    }
+
+    // ========== COMMUNITY FUNCTIONS (UPDATED) ==========
+
+    // --- UPDATED: Made async, uses Supabase auth ---
+    async function sendMessage() {
+        const input = document.getElementById('chatInput');
+        const messages = document.getElementById('chatMessages');
+        
+        // Securely get the user
+        const { data: { user } } = await supabase.auth.getUser();
+        const userName = user ? (user.email.split('@')[0] || 'User') : 'Guest';
+        
+        if (!input.value.trim()) return;
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message user';
+        messageDiv.innerHTML = `<strong>${userName}:</strong> ${input.value}`;
+        messages.appendChild(messageDiv);
+        
+        // Note: This chat is not persistent. It only adds to the local DOM.
+        // For a real-time chat, we would insert this message into Supabase
+        // and use Supabase Realtime to broadcast it to other users.
+
+        input.value = '';
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    // --- NEW: Loads posts from Supabase ---
+    async function loadPosts() {
+        const postsContainer = document.getElementById('postsContainer');
+        
+        const { data, error } = await supabase
+            .from('community_posts') // Ensure your table is named 'community_posts'
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Error loading posts:', error);
+            postsContainer.innerHTML = '<p>Error loading posts. Please try again.</p>';
+            return;
+        }
+
+        if (data.length === 0) {
+            postsContainer.innerHTML = '<p>No posts yet. Be the first to create one!</p>';
+            return;
+        }
+
+        postsContainer.innerHTML = data.map(post => `
+            <div class="post">
+                <div class="post-header">
+                    <strong>${post.title}</strong>
+                    <span style="color: var(--text-light); font-size: 0.9rem;">
+                        Posted by: ${post.user_name || 'User'}
+                    </span>
+                </div>
+                <p>${post.content}</p>
+                <div class="post-actions">
+                    <button onclick="likePost(this)">👍 Like (0)</button>
+                    <button onclick="toggleComments(this)">💬 Comment (0)</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // --- UPDATED: Made async, saves post to Supabase ---
+    async function createPost() {
+        const titleInput = document.getElementById('postTitle');
+        const contentInput = document.getElementById('postContent');
+        
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+            showToast("Please login to create a post");
+            return;
+        }
+        
+        const title = titleInput.value.trim();
+        const content = contentInput.value.trim();
+        const userName = user.email.split('@')[0] || 'User'; // Use email or a profile field
+
+        if (!title || !content) {
+            showToast("Please fill in both title and content");
+            return;
+        }
+        
+        const { error } = await supabase
+            .from('community_posts') // Ensure your table is named 'community_posts'
+            .insert({
+                title: title,
+                content: content,
+                user_id: user.id,
+                user_name: userName // Storing username for easy display
+            });
+
+        if (error) {
+            console.error('Error creating post:', error);
+            showToast("Error creating post. Please try again.");
+        } else {
+            showToast("Post created successfully!");
+            titleInput.value = '';
+            contentInput.value = '';
+            loadPosts(); // Refresh the post list
+        }
+    }
+
+    // --- UPDATED: Made async, uses Supabase auth ---
+    async function likePost(button) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            showToast("Please login to like posts");
+            return;
+        }
+        
+        // Note: This is still a local DOM-only update for the like count.
+        // A full implementation would update a 'likes' table in Supabase.
+        const currentText = button.textContent;
+        const likeCount = parseInt(currentText.match(/\((\d+)\)/)[1]) || 0;
+        button.textContent = `👍 Like (${likeCount + 1})`;
+    }
+
+    function toggleComments(button) {
+        showToast("Comment feature coming soon!");
+    }
+
+    // ========== AUTH FUNCTIONS (CLEANED) ==========
+    
+    // KEPT: This is a utility function used by many parts of this page
+    function showToast(message) {
+        const toast = document.getElementById("toast");
+        toast.innerText = message;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 3000);
+    }
+    
+    // REMOVED: updateAuthLinks() and logout()
+    // These are now handled globally by auth.js
+
+    // ========== EVENT LISTENERS ==========
+    document.getElementById('chatInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') sendMessage();
+    });
+
+    document.getElementById('aiInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') askAI();
+    });
+
+    // ========== ENHANCED INITIALIZATION (UPDATED) ==========
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Initializing community page...');
+        
+        // REMOVED: updateAuthLinks(); (Handled by auth.js)
+        
+        // ADDED: Load posts from Supabase
+        loadPosts();
+
+        // Load AI chat history (Unchanged)
+        let retryCount = 0;
+        const maxRetries = 3;
+        
+        function initializeChat() {
+            try {
+                loadAIChatHistory();
+                console.log('Chat initialized successfully');
+            } catch (error) {
+                console.error('Chat initialization failed:', error);
+                if (retryCount < maxRetries) {
+                    retryCount++;
+                    console.log(`Retrying chat initialization (${retryCount}/${maxRetries})...`);
+                    setTimeout(initializeChat, 500);
+                }
+            }
+        }
+        
+        initializeChat();
+        
+        // Also save chat when user leaves the page (Unchanged)
+        window.addEventListener('beforeunload', saveAIChatHistory);
+        
+        // Save chat periodically as backup (Unchanged)
+        setInterval(saveAIChatHistory, 30000); // Save every 30 seconds
+        
+        console.log('Community page fully initialized');
+    });
+
+    // ========== GLOBAL TRANSLATION SUPPORT (Unchanged) ==========
+    // This will be overridden by the global translations.js if it exists
+    function changeLanguage(lang) {
+        localStorage.setItem('preferred_language', lang);
+        showToast(`Language changed to ${lang === 'en' ? 'English' : lang === 'hi' ? 'Hindi' : 'Kannada'}`);
+    }
+  </script>
+
+  <script src="/translations.js"></script>
+  </body>
+</html>

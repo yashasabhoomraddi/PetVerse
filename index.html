@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PetVerse 🐾 | Adopt. Love. Repeat.</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/supabase-client.js"></script>
+  <script src="/translations.js"></script>
+  <script src="/auth.js"></script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">PetVerse 🐾</div>
+    <ul>
+        <li><a href="index.html" data-i18n="nav_home">Home</a></li>
+        <li><a href="pets.html" data-i18n="nav_adopt">Adopt</a></li>
+        <li><a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a></li>
+        <li><a href="donate.html" data-i18n="nav_donate">Donate</a></li>
+        <li><a href="community.html" data-i18n="nav_community">Community</a></li>
+        <li><a href="lost-found.html" data-i18n="nav_lost_found">Lost & Found</a></li>
+        <li><a href="login.html" id="loginLink" data-i18n="nav_login">Login / Signup</a></li>
+        <li><a href="myadoptions.html" data-i18n="nav_my_adoptions">My Adoptions</a></li>
+        <li id="logoutItem" style="display: none;">
+            <a href="javascript:void(0)" id="logoutLink" style="color: var(--secondary);" data-i18n="nav_logout">Logout</a>
+        </li>
+        <li>
+            <select id="languageSelect" onchange="changeLanguage(this.value)" style="background: var(--primary-light); color: white; border: none; padding: 0.5rem; border-radius: var(--radius);">
+                <option value="en">English</option>
+                <option value="hi">हिन्दी</option>
+                <option value="kn">ಕನ್ನಡ</option>
+            </select>
+        </li>
+    </ul>
+</nav>
+  <header class="hero">
+    <div class="hero-content">
+      <h1>Welcome to PetVerse!</h1>
+      <p>Where every pet finds a loving home and every home finds its perfect companion</p>
+    </div>
+  </header>
+
+   <section class="features">
+    <div class="cards">
+      <div class="card">
+        <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="Adoption">
+        <h3>Adopt a Pet</h3>
+        <p>Find your perfect furry friend and give them a forever home filled with love and care.</p>
+        <a href="pets.html" class="card-btn">Browse Pets</a>
+      </div>
+
+      <div class="card">
+        <img src="https://cdn-icons-png.flaticon.com/512/616/616430.png" alt="Volunteer">
+        <h3>Volunteer</h3>
+        <p>Join our community of animal lovers and make a difference in pets' lives through volunteering.</p>
+        <a href="volunteer.html" class="card-btn">Get Involved</a>
+      </div>
+
+      <div class="card">
+        <img src="https://cdn-icons-png.flaticon.com/512/616/616441.png" alt="Donate">
+        <h3>Support</h3>
+        <p>Help us provide food, shelter, and medical care for rescued animals in need.</p>
+        <a href="donate.html" class="card-btn">Donate Now</a>
+      </div>
+
+      <div class="card">
+        <img src="https://cdn-icons-png.flaticon.com/512/616/616426.png" alt="Community">
+        <h3>Community</h3>
+        <p>Connect with other pet lovers, share stories, and get advice from our pet AI assistant.</p>
+        <a href="community.html" class="card-btn">Join Community</a>
+      </div>
+
+      <div class="card">
+        <img src="httpsa://cdn-icons-png.flaticon.com/512/616/616425.png" alt="Lost & Found">
+        <h3>Lost & Found</h3>
+        <p>Help reunite lost pets with their families or report found pets in your neighborhood.</p>
+        <a href="lost-found.html" class="card-btn">View Reports</a>
+      </div>
+
+      <div class="card">
+        <img src="httpsia://cdn-icons-png.flaticon.com/512/616/616422.png" alt="My Adoptions">
+        <h3>My Adoptions</h3>
+        <p>View all the pets you've adopted and track your adoption journey with us.</p>
+        <a href="myadoptions.html" class="card-btn">View My Pets</a>
+      </div>
+    </div>
+  </section>
+
+  <footer style="text-align: center; padding: 2rem; background: var(--primary); color: var(--white);">
+    <p>© 2025 PetVerse | Adopt. Love. Care. 🐾</p>
+  </footer>
+
+  <div id="toast" class="toast"></div>
+
+  </body>
+</html>
