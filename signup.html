@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account | PetVerse</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/supabase-client.js"></script>
+  <script src="/translations.js"></script>
+  <script src="/auth.js"></script>
+  
+  <!-- Re-using the login page styles -->
+  <style>
+    .login-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--primary-light), var(--primary));
+      padding: 2rem;
+    }
+    .login-box {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: flex;
+      max-width: 900px;
+      width: 100%;
+      overflow: hidden;
+    }
+    .login-left {
+      flex: 1;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: var(--white);
+      padding: 3rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      position: relative;
+    }
+    .login-left::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('/static/images/bruno.webp') center/cover;
+      opacity: 0.1;
+    }
+    .login-left-content {
+      position: relative;
+      z-index: 2;
+    }
+    .login-left h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+    }
+    .login-right {
+      flex: 1;
+      padding: 3rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .login-logo {
+      width: 80px;
+      height: 80px;
+      background: var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+      color: var(--white);
+      font-size: 2rem;
+    }
+    .login-right h1 {
+      text-align: center;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-size: 2rem;
+    }
+    .login-subtitle {
+      text-align: center;
+      color: var(--text-light);
+      margin-bottom: 2rem;
+    }
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+      font-weight: 500;
+    }
+    .form-input {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      border: 2px solid var(--primary-light);
+      border-radius: var(--radius);
+    }
+    .login-btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: var(--white);
+      border: none;
+      padding: 1rem;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .signup-link {
+      text-align: center;
+      color: var(--text-light);
+      margin-top: 2rem;
+    }
+    .signup-link a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    @media (max-width: 768px) { .login-box { flex-direction: column; } .login-left { padding: 2rem; } }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">PetVerse 🐾</div>
+    <ul>
+        <li><a href="index.html" data-i18n="nav_home">Home</a></li>
+        <li><a href="pets.html" data-i18n="nav_adopt">Adopt</a></li>
+        <li><a href="volunteer.html" data-i18n="nav_volunteer">Volunteer</a></li>
+        <li><a href="donate.html" data-i18n="nav_donate">Donate</a></li>
+        <li><a href="community.html" data-i18n="nav_community">Community</a></li>
+        <li><a href="lost-found.html" data-i18n="nav_lost_found">Lost & Found</a></li>
+        <li><a href="login.html" id="loginLink" data-i18n="nav_login">Login / Signup</a></li>
+        <li><a href="myadoptions.html" data-i18n="nav_my_adoptions">My Adoptions</a></li>
+        <li id="logoutItem" style="display: none;">
+            <a href="javascript:void(0)" id="logoutLink" style="color: var(--secondary);" data-i18n="nav_logout">Logout</a>
+        </li>
+        <li>
+            <select id="languageSelect" onchange="changeLanguage(this.value)" style="background: var(--primary-light); color: white; border: none; padding: 0.5rem; border-radius: var(--radius);">
+                <option value="en">English</option>
+                <option value="hi">हिन्दी</option>
+                <option value="kn">ಕನ್ನಡ</option>
+            </select>
+        </li>
+    </ul>
+</nav>
+
+  <div class="login-container">
+    <div class="login-box">
+      <div class="login-left">
+        <div class="login-left-content">
+          <h2>Join PetVerse</h2>
+          <p>"Saving one animal won't change the world, but it will change the world for that one animal."</p>
+        </div>
+      </div>
+      
+      <div class="login-right">
+        <div class="login-logo">🐾</div>
+        <h1>Create Your Account</h1>
+        <p class="login-subtitle">Join our community of pet lovers</p>
+        
+        <form id="signupForm">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" class="form-input" placeholder="you@example.com" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" class="form-input" placeholder="Create a password" required>
+          </div>
+
+          <div class="form-group">
+            <label for="confirmPassword">Confirm Password</label>
+            <input type="password" id="confirmPassword" class="form-input" placeholder="Confirm your password" required>
+          </div>
+          
+          <button type="submit" class="login-btn">Create Account</button>
+        </form>
+        
+        <div class="signup-link">
+          <p>Already have an account? <a href="login.html">Login Here</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    // Use the global showToast from auth.js, which is loaded in the <head>
+    
+    document.getElementById("signupForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const confirmPassword = document.getElementById("confirmPassword").value.trim();
+
+      // --- VALIDATION ---
+      if (!email || !password || !confirmPassword) {
+        showToast("Please fill in all fields", "error");
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        showToast("Passwords do not match!", "error");
+        return;
+      }
+      
+      // --- SIGNUP LOGIC ---
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email: email,
+          password: password
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        showToast("Signup successful! Check your email for a confirmation link.", "success");
+        
+        // Redirect to login page after a short delay
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 2000);
+
+      } catch (err) {
+        console.error('Signup error', err);
+        showToast(err.message || 'Signup failed. Please try again.', 'error');
+      }
+    });
+  </script>
+
+</body>
+</html>
