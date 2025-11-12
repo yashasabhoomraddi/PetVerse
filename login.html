@@ -113,32 +113,42 @@
       }
     }
 
+    // --- UPDATED THIS FUNCTION ---
     async function handleEmailLogin(emailInput, password) {
       const email = emailInput.trim();
       try {
-        // We now directly use the email, no more "username" logic
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
         
+        // This is the error for "Wrong password", "User not found", etc.
+        if (error) throw error;
+
+        // --- THIS IS THE NEW, CRITICAL CHECK ---
+        // If there was no error, but the session is NULL, it means
+        // the user has not confirmed their email address yet.
+        if (!data.session) {
+          showToast("Please check your email to confirm your account first.", "error");
+          return;
+        }
+
+        // If we get here, the login was fully successful.
         showToast(`Welcome back, ${email}! Redirecting...`, 'success');
         
-        // This function is in auth.js, it's good to call it if it exists
         if (typeof updateAuthLinks === 'function') {
            updateAuthLinks();
         }
         
         setTimeout(() => { window.location.href = 'pets.html'; }, 900);
+      
       } catch (err) {
-        showToast(err?.message || 'Login failed. Check credentials or signup first.', 'error');
+        // This will now correctly catch "Invalid login credentials"
+        showToast(err.message || 'Login failed. Check credentials or signup first.', 'error');
       }
     }
-
-    // --- REMOVED: handleOAuthLogin() function ---
 
     // --- Attach handlers (Login form only) ---
     document.getElementById("loginForm").addEventListener("submit", function(e) {
       e.preventDefault();
-      const email = document.getElementById("username").value; // This is now an email field
+      const email = document.getElementById("username").value;
       const password = document.getElementById("password").value;
       
       if (!email || !password) {
@@ -147,8 +157,6 @@
       }
       handleEmailLogin(email, password);
     });
-
-    // --- REMOVED: Social login click listeners ---
 
     // --- On page load logic (unchanged) ---
     document.addEventListener('DOMContentLoaded', async () => {
@@ -168,5 +176,5 @@
     });
   </script>
   
-  </body>
+</body>
 </html>
