@@ -1,9 +1,6 @@
 PetVerse 🐾 - Pet Adoption Platform
 A beautiful, modern web application for pet adoption, volunteering, and donations built with Flask backend and vanilla JavaScript frontend.
 
-# pip install -r requirements.txt
-# python app.py
-# https://petpal-backend-nza1.onrender.com/init
 
 <!-- PetVerse/
 ├── server/
