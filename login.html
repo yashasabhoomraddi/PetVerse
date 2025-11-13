@@ -30,7 +30,7 @@
     .toggle-password { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-light); padding: 0.5rem; }
     .login-btn { width: 100%; background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: var(--white); border: none; padding: 1rem; border-radius: var(--radius); font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-top: 1rem; }
     .login-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(139, 95, 191, 0.3); }
-    .signup-link { text-align: center; color: var(--text-light); margin-top: 2rem; } /* Added margin-top */
+    .signup-link { text-align: center; color: var(--text-light); margin-top: 2rem; }
     .signup-link a { color: var(--primary); text-decoration: none; font-weight: 500; }
     .signup-link a:hover { text-decoration: underline; }
     @media (max-width: 768px) { .login-box { flex-direction: column; } .login-left { padding: 2rem; } }
@@ -119,19 +119,36 @@
       try {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         
-        // This is the error for "Wrong password", "User not found", etc.
-        if (error) throw error;
-
-        // --- THIS IS THE NEW, CRITICAL CHECK ---
-        // If there was no error, but the session is NULL, it means
-        // the user has not confirmed their email address yet.
+        if (error) throw error; // Catches "Invalid login credentials"
+        
+        // This is the check for unconfirmed emails (if you have it turned on)
         if (!data.session) {
           showToast("Please check your email to confirm your account first.", "error");
           return;
         }
 
+        // --- NEW CODE: Fetch profile on login ---
+        try {
+          // After a successful login, fetch the user's profile
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('username, avatar_url') // Select username and avatar
+            .eq('id', data.user.id) // Match the logged-in user's ID
+            .single(); // We only expect one row
+
+          if (profileError) {
+            console.error('Error fetching profile:', profileError);
+          } else if (profile) {
+            // Save the fetched profile to localStorage
+            localStorage.setItem('petverse_profile', JSON.stringify(profile));
+          }
+        } catch (profileErr) {
+            console.error('Failed to fetch profile during login:', profileErr);
+        }
+        // --- End of new code ---
+
         // If we get here, the login was fully successful.
-        showToast(`Welcome back, ${email}! Redirecting...`, 'success');
+        showToast(`Welcome back! Redirecting...`, 'success');
         
         if (typeof updateAuthLinks === 'function') {
            updateAuthLinks();
@@ -140,7 +157,6 @@
         setTimeout(() => { window.location.href = 'pets.html'; }, 900);
       
       } catch (err) {
-        // This will now correctly catch "Invalid login credentials"
         showToast(err.message || 'Login failed. Check credentials or signup first.', 'error');
       }
     }
@@ -152,7 +168,7 @@
       const password = document.getElementById("password").value;
       
       if (!email || !password) {
-        showToast("Please fill in both fields!", 'error');
+        showToast("Please fill in all fields!", 'error');
         return;
       }
       handleEmailLogin(email, password);
