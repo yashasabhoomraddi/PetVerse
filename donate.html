@@ -6,9 +6,11 @@
   <title>Donate | PetVerse</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css">
-  <script type="module" src="/supabase-client.js"></script>
-  <script src="/translations.js"></script>
-  <script src="/auth.js"></script>
+  <!-- 1. Use relative paths (./) for all files -->
+<!-- 2. Add "defer" to your regular scripts -->
+<script type="module" src="./supabase-client.js"></script>
+<script src="./translations.js" defer></script>
+<script src="./auth.js" defer></script>
 </head>
 <body>
   <nav class="navbar">

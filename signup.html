@@ -6,9 +6,9 @@
   <title>Create Account | PetVerse</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css">
-  <script type="module" src="/supabase-client.js"></script>
-  <script src="/translations.js"></script>
-  <script src="/auth.js"></script>
+  <script type="module" src="./supabase-client.js"></script>
+<script src="./translations.js" defer></script>
+<script src="./auth.js" defer></script>
   
   <style>
     .login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--primary-light), var(--primary)); padding: 2rem; }
@@ -72,7 +72,7 @@
         <form id="signupForm">
           <div class="form-group">
             <label for="username">Username</label>
-            <input type="text" id="username" class="form-input" placeholder="e.g., Yashas" required>
+            <input type="text" id="username" class="form-input" placeholder="e.g., sharan" required>
           </div>
           
           <div class="form-group">

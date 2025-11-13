@@ -30,39 +30,90 @@ function showToast(message, type = 'info') {
 }
 
 /**
- * Injects the CSS needed for the new profile avatar.
+ * Injects the CSS needed for the new profile dropdown.
  * This keeps all profile logic self-contained in this file.
  */
 function injectProfileStyles() {
   const style = document.createElement('style');
   style.textContent = `
-    /* Style for the round profile avatar in the navbar */
-    .navbar-avatar, .navbar-avatar-default {
-      width: 32px;
-      height: 32px;
+    /* Style for the round profile avatar BUTTON */
+    .profile-avatar-button {
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
-      margin-right: 8px;
       object-fit: cover;
       border: 2px solid var(--primary-light);
-      flex-shrink: 0;
-    }
-    
-    /* Fallback style for if user has no avatar_url */
-    .navbar-avatar-default {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
       background-color: var(--primary-light);
       color: var(--white);
       font-weight: 600;
-      font-size: 14px;
+      font-size: 16px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0; /* Reset button padding */
     }
     
-    /* Make the login/profile link a flex container to hold the avatar */
-    #loginLink {
-      display: flex;
-      align-items: center;
-      gap: 5px; /* Adds a small space between avatar and text */
+    /* Container for the profile menu */
+    .profile-menu-container {
+      position: relative;
+    }
+    
+    /* The dropdown menu itself */
+    .profile-dropdown {
+      display: none; /* Hidden by default */
+      position: absolute;
+      top: 50px; /* Position below the navbar */
+      right: 0;
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      min-width: 220px;
+      z-index: 100;
+      border: 1px solid var(--background);
+      overflow: hidden;
+    }
+    
+    /* Show the dropdown when active */
+    .profile-dropdown.active {
+      display: block;
+    }
+    
+    /* Header section of the dropdown */
+    .profile-dropdown-header {
+      padding: 1rem;
+      border-bottom: 1px solid var(--background);
+    }
+    
+    .profile-dropdown-header .username {
+      font-weight: 600;
+      color: var(--text);
+      display: block;
+    }
+    
+    .profile-dropdown-header .email {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      display: block;
+      word-wrap: break-word;
+    }
+    
+    /* Clickable items in the dropdown */
+    .profile-dropdown-item {
+      display: block;
+      padding: 0.8rem 1rem;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    
+    .profile-dropdown-item:hover {
+      background: var(--background);
+    }
+    
+    .profile-dropdown-item.logout {
+      color: #ff6b6b; /* Red color for logout */
     }
   `;
   document.head.appendChild(style);
@@ -75,16 +126,10 @@ function injectProfileStyles() {
  */
 async function logout() {
   try {
-    // 1. Clear the saved profile from local storage
     localStorage.removeItem('petverse_profile');
-    
-    // 2. Sign out from Supabase
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
-    
     showToast(`Goodbye! You have been logged out.`, 'success');
-    
-    // 3. Update navbar links and redirect
     updateAuthLinks(); // Update UI immediately
     setTimeout(() => { window.location.href = 'index.html'; }, 1200);
   } catch (err) {
@@ -94,103 +139,127 @@ async function logout() {
 }
 
 /**
+ * Toggles the visibility of the profile dropdown menu.
+ */
+function toggleProfileDropdown() {
+  const dropdown = document.getElementById('profile-dropdown-menu');
+  if (dropdown) {
+    dropdown.classList.toggle('active');
+  }
+}
+
+/**
  * Updates the navbar links based on the user's login state.
- * Reads profile from localStorage to display username and avatar.
+ * Creates or removes the profile dropdown menu.
  */
 async function updateAuthLinks() {
-  // Get auth state from Supabase
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Get UI elements
-  const loginLink = document.getElementById("loginLink");
-  const logoutItem = document.getElementById("logoutItem");
-  const logoutLink = document.getElementById("logoutLink");
-  
-  // This is the logo in the top-left corner
-  const mainLogo = document.querySelector('.navbar .logo');
+  // Get the navbar list <ul>
+  const navbarList = document.querySelector('.navbar ul');
+  if (!navbarList) return; // Exit if navbar isn't found
+
+  // Get the original login/logout links
+  const loginLinkItem = document.getElementById("loginLink")?.parentElement; // Get the <li>
+  const logoutItem = document.getElementById("logoutItem"); // Get the <li>
+
+  // Find the new profile menu if it already exists
+  let profileMenu = document.getElementById('profile-menu-container');
 
   if (user) {
     // --- USER IS LOGGED IN ---
     
-    // 1. Get profile from localStorage (saved during login)
-    const profile = JSON.parse(localStorage.getItem('petverse_profile'));
-
-    // 2. Determine display name and avatar
-    const displayName = profile?.username || user.email.split('@')[0];
-    const avatarUrl = profile?.avatar_url;
-
-    // 3. Create the avatar HTML
-    let avatarHtml = '';
-    if (avatarUrl) {
-      avatarHtml = `<img src="${avatarUrl}" alt="${displayName}" class="navbar-avatar">`;
-    } else {
-      // Use first letter as default
-      const firstLetter = displayName.charAt(0).toUpperCase();
-      avatarHtml = `<div class="navbar-avatar-default">${firstLetter}</div>`;
-    }
-
-    // 4. Update the "Login" link to be a "Profile" link
-    if (loginLink) {
-      // This is the "Login / Signup" link on the right
-      loginLink.innerHTML = `${avatarHtml} Welcome, ${displayName} 👋`;
-      loginLink.style.color = "var(--accent)";
-      loginLink.href = "javascript:void(0)"; // Or link to a profile page
-      loginLink.onclick = () => showToast(`Logged in as ${displayName}`);
-    }
-
-    // 5. Update the main logo in the top-left, as you requested
-    if (mainLogo) {
-      mainLogo.innerHTML = `
-        <a href="index.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit;">
-          ${avatarHtml}
-          <span style="font-weight: 500;">${displayName}'s PetVerse</span>
-        </a>
-      `;
+    // 1. Hide the original "Login / Signup" and "Logout" links
+    if (loginLinkItem) loginLinkItem.style.display = 'none';
+    if (logoutItem) logoutItem.style.display = 'none';
+    
+    // 2. If the profile menu doesn't exist, create it
+    if (!profileMenu) {
+      profileMenu = document.createElement('li');
+      profileMenu.id = 'profile-menu-container';
+      profileMenu.className = 'profile-menu-container';
+      navbarList.appendChild(profileMenu);
     }
     
-    // 6. Show the "Logout" button
-    if (logoutItem && logoutLink) {
-      logoutItem.style.display = "block";
-      logoutLink.onclick = logout;
+    // 3. Get profile data
+    const profile = JSON.parse(localStorage.getItem('petverse_profile'));
+    const displayName = profile?.username || user.email.split('@')[0];
+    const email = user.email;
+    const avatarUrl = profile?.avatar_url;
+
+    // 4. Create avatar button
+    let avatarButtonHtml = '';
+    if (avatarUrl) {
+      avatarButtonHtml = `<img src="${avatarUrl}" alt="${displayName}" class="profile-avatar-button">`;
+    } else {
+      const firstLetter = displayName.charAt(0).toUpperCase();
+      avatarButtonHtml = `<button class="profile-avatar-button">${firstLetter}</button>`;
     }
+
+    // 5. Populate the profile menu
+    profileMenu.innerHTML = `
+      <!-- This is the clickable avatar button -->
+      <div id="profile-avatar-button">
+        ${avatarButtonHtml}
+      </div>
+      
+      <!-- This is the hidden dropdown menu -->
+      <div id="profile-dropdown-menu" class="profile-dropdown">
+        <div class="profile-dropdown-header">
+          <span class="username">${displayName}</span>
+          <span class="email">${email}</span>
+        </div>
+        <a id="profile-logout-button" class="profile-dropdown-item logout">
+          Logout
+        </a>
+      </div>
+    `;
+
+    // 6. Add click listeners
+    document.getElementById('profile-avatar-button').onclick = toggleProfileDropdown;
+    document.getElementById('profile-logout-button').onclick = logout;
+    
+    // Optional: Close dropdown if user clicks outside
+    window.addEventListener('click', function(e) {
+      if (!profileMenu.contains(e.target)) {
+        document.getElementById('profile-dropdown-menu')?.classList.remove('active');
+      }
+    });
+
   } else {
     // --- USER IS LOGGED OUT ---
 
-    // 1. Restore the original logo
-    if (mainLogo) {
-      mainLogo.innerHTML = 'PetVerse 🐾';
-    }
+    // 1. Show the "Login / Signup" link
+    if (loginLinkItem) loginLinkItem.style.display = 'block';
     
-    // 2. Show the "Login / Signup" link
-    if (loginLink) {
-      loginLink.innerHTML = "Login / Signup";
-      loginLink.style.color = "";
-      loginLink.href = "login.html";
-      loginLink.onclick = null;
-    }
-    
-    // 3. Hide the "Logout" button
-    if (logoutItem) {
-      logoutItem.style.display = "none";
+    // 2. Hide the (unused) "Logout" item
+    if (logoutItem) logoutItem.style.display = 'none';
+
+    // 3. If the profile menu exists, remove it
+    if (profileMenu) {
+      profileMenu.remove();
     }
   }
 }
 
 // --- 3. INITIALIZATION ---
 
-// Listen to auth state changes (e.g., login, logout)
-// This runs when the page loads AND when auth state changes
-supabase.auth.onAuthStateChange((event, session) => {
-  console.log('Auth event:', event);
-  
-  // If user logs out, our logout() function clears the profile.
-  // If user logs in, the login.html page saves the profile.
-  // Either way, we update the navbar to reflect the change.
-  updateAuthLinks();
-});
+// Listen to auth state changes
+try {
+  supabase.auth.onAuthStateChange((event, session) => {
+    console.log('Auth event:', event);
+    updateAuthLinks();
+  });
+} catch (error) {
+  console.error("Error setting up onAuthStateChange:", error);
+}
 
 // Run once when the page loads
 document.addEventListener('DOMContentLoaded', () => {
-  injectProfileStyles();
-  updateAuthLinks();
+  try {
+    injectProfileStyles();
+    updateAuthLinks();
+  } catch (error) {
+    console.error("Error during initial auth setup:", error);
+  }
 });
