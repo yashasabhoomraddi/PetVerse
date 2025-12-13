@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "82e46d2e_64e17eba",
+        "filename": "community.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1039139
+      },
+      "writtenOn": "2025-12-13T17:24:56Z",
+      "side": 1,
+      "message": "@yashasab24@gmail.com remove the line",
+      "revId": "9c8225942fcb3ba99365883eb6b8184cb7b3b09d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
