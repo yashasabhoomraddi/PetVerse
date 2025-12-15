@@ -16,6 +16,24 @@
       "message": "delete",
       "revId": "c39aca1a8ccb2e05921b70ca19273278c39f6e12",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8935aa01_c8ab89cc",
+        "filename": "community.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1039139
+      },
+      "writtenOn": "2025-12-15T06:19:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "73ff5bde_84fb418d",
+      "revId": "c39aca1a8ccb2e05921b70ca19273278c39f6e12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
