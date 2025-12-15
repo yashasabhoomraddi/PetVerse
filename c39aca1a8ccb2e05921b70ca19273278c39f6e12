@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "73ff5bde_84fb418d",
+        "filename": "community.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1039139
+      },
+      "writtenOn": "2025-12-15T05:40:52Z",
+      "side": 1,
+      "message": "delete",
+      "revId": "c39aca1a8ccb2e05921b70ca19273278c39f6e12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
