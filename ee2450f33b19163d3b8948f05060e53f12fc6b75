@@ -33,6 +33,24 @@
       "message": "@yashasab18@gmail.com petverse team",
       "revId": "ee2450f33b19163d3b8948f05060e53f12fc6b75",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f8a006c2_2aa404c6",
+        "filename": "community.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1039139
+      },
+      "writtenOn": "2025-12-24T07:20:06Z",
+      "side": 1,
+      "message": "Acknowledged",
+      "parentUuid": "f0d76533_a626dacf",
+      "revId": "ee2450f33b19163d3b8948f05060e53f12fc6b75",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
